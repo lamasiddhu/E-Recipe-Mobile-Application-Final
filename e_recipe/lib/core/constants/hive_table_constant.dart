@@ -8,4 +8,5 @@ class HiveTableConstant {
 
   static const String sessionBox = 'e_recipe_session';
   static const String activeUserKey = 'active_user_id';
+  static const String authTokenKey = 'auth_token';
 }

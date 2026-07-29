@@ -1,15 +1,13 @@
 import 'package:e_recipe/core/constants/hive_table_constant.dart';
 import 'package:e_recipe/features/auth/data/models/auth_hive_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 final hiveServiceProvider = Provider<HiveService>((ref) => HiveService());
 
 class HiveService {
   Future<void> init() async {
-    final directory = await getApplicationDocumentsDirectory();
-    Hive.init('${directory.path}/${HiveTableConstant.dbName}');
+    await Hive.initFlutter(HiveTableConstant.dbName);
     _registerAdapters();
     await openBoxes();
   }
@@ -71,6 +69,8 @@ class HiveService {
 
   bool isEmailTaken(String email) {
     final normalizedEmail = email.toLowerCase();
-    return _users.values.any((user) => user.email.toLowerCase() == normalizedEmail);
+    return _users.values.any(
+      (user) => user.email.toLowerCase() == normalizedEmail,
+    );
   }
 }
