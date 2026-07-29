@@ -39,7 +39,6 @@ class _OnboardingViewState extends State<OnboardingView> {
   @override
   Widget build(BuildContext context) {
     const Color brandColor = Color(0xFFB84715);
-    
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F2E9),
@@ -50,10 +49,7 @@ class _OnboardingViewState extends State<OnboardingView> {
               alignment: Alignment.topRight,
               child: TextButton(
                 onPressed: _skipToLogin,
-                child: const Text(
-                  'Skip',
-                  style: TextStyle(color: Colors.grey),
-                ),
+                child: const Text('Skip', style: TextStyle(color: Colors.grey)),
               ),
             ),
             Expanded(
@@ -68,22 +64,19 @@ class _OnboardingViewState extends State<OnboardingView> {
                   _buildPage(
                     icon: Icons.restaurant_menu,
                     title: 'Discover Thousands of Recipes',
-                    description:
-                        'Explore the Recipes',
+                    description: 'Explore the Recipes',
                     brandColor: brandColor,
                   ),
                   _buildPage(
                     icon: Icons.calendar_today,
                     title: 'Plan Your Meals Effortlessly',
-                    description:
-                        'MAKE YOUR OWN THINGS USING THE RECIPE',
+                    description: 'MAKE YOUR OWN THINGS USING THE RECIPE',
                     brandColor: brandColor,
                   ),
                   _buildPage(
                     icon: Icons.shopping_cart,
                     title: 'Smart Shopping Lists',
-                    description:
-                        'ONE TAP AND YOU GET THE RECIPE',
+                    description: 'ONE TAP AND YOU GET THE RECIPE',
                     brandColor: brandColor,
                   ),
                 ],
@@ -91,11 +84,7 @@ class _OnboardingViewState extends State<OnboardingView> {
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildDot(0),
-                _buildDot(1),
-                _buildDot(2),
-              ],
+              children: [_buildDot(0), _buildDot(1), _buildDot(2)],
             ),
             const SizedBox(height: 24),
             Padding(
@@ -151,11 +140,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                 ),
               ],
             ),
-            child: Icon(
-              icon,
-              size: 100,
-              color: brandColor,
-            ),
+            child: Icon(icon, size: 100, color: brandColor),
           ),
           const SizedBox(height: 48),
           Text(
