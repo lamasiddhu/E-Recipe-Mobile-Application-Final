@@ -48,11 +48,7 @@ class _SplashViewState extends State<SplashView> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(
-                Icons.restaurant,
-                size: 40,
-                color: brandColor,
-              ),
+              child: const Icon(Icons.restaurant, size: 40, color: brandColor),
             ),
             const SizedBox(height: 24),
             const Text(
@@ -66,10 +62,7 @@ class _SplashViewState extends State<SplashView> {
             const SizedBox(height: 8),
             Text(
               'Cook Smart, Eat Better',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
             ),
             // LinearProgressIndicator and its preceding SizedBox removed
           ],

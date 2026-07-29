@@ -1,12 +1,16 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:e_recipe/core/constants/hive_table_constant.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 import 'api_endpoints.dart';
+import 'package:e_recipe/core/services/biometrics/biometric_service.dart';
+
+final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
 
 class ApiClient {
   late final Dio _dio;
-  final FlutterSecureStorage _storage;
 
-  ApiClient() : _storage = const FlutterSecureStorage() {
+  ApiClient() {
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiEndpoints.baseUrl,
@@ -20,38 +24,45 @@ class ApiClient {
     );
 
     // Add interceptor to automatically add JWT token
-    _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) async {
-        final token = await _storage.read(key: 'auth_token');
-        if (token != null) {
-          options.headers['Authorization'] = 'Bearer $token';
-        }
-        return handler.next(options);
-      },
-      onError: (error, handler) async {
-        // If token is expired (401), clear it
-        if (error.response?.statusCode == 401) {
-          await _storage.delete(key: 'auth_token');
-        }
-        return handler.next(error);
-      },
-    ));
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          final token = _session.get(HiveTableConstant.authTokenKey);
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+          return handler.next(options);
+        },
+        onError: (error, handler) async {
+          // If token is expired (401), clear it
+          if (error.response?.statusCode == 401) {
+            await _session.delete(HiveTableConstant.authTokenKey);
+          }
+          return handler.next(error);
+        },
+      ),
+    );
   }
 
   Dio get dio => _dio;
+  Box<String> get _session => Hive.box<String>(HiveTableConstant.sessionBox);
 
   // Save token after login
   Future<void> saveToken(String token) async {
-    await _storage.write(key: 'auth_token', value: token);
+    await _session.put(HiveTableConstant.authTokenKey, token);
+    await BiometricService().rememberCurrentSession();
   }
 
   // Clear token on logout
   Future<void> clearToken() async {
-    await _storage.delete(key: 'auth_token');
+    await _session.delete(HiveTableConstant.authTokenKey);
   }
 
   // GET request
-  Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) async {
+  Future<Response> get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
     return await _dio.get(path, queryParameters: queryParameters);
   }
 
@@ -63,6 +74,10 @@ class ApiClient {
   // PUT request
   Future<Response> put(String path, {dynamic data}) async {
     return await _dio.put(path, data: data);
+  }
+
+  Future<Response> patch(String path, {dynamic data}) async {
+    return await _dio.patch(path, data: data);
   }
 
   // DELETE request

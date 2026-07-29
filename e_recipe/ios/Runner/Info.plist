@@ -2,6 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSCameraUsageDescription</key>
+	<string>E-Recipe uses the camera when you choose to take a profile photo.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>E-Recipe uses your photo library when you choose a profile picture.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>E-Recipe uses your location while the app is open to personalize the cooking experience.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>E-Recipe uses Face ID to protect login and recipe payments.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

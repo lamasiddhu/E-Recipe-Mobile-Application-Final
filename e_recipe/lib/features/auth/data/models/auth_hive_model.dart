@@ -1,7 +1,6 @@
 import 'package:e_recipe/core/constants/hive_table_constant.dart';
 import 'package:e_recipe/features/auth/domain/entities/auth_entity.dart';
 import 'package:hive/hive.dart';
-import 'package:uuid/uuid.dart';
 
 part 'auth_hive_model.g.dart';
 
@@ -32,7 +31,7 @@ class AuthHiveModel extends HiveObject {
     required this.phone,
     required this.email,
     required this.password,
-  }) : userId = userId ?? const Uuid().v4();
+  }) : userId = userId ?? 'local-${DateTime.now().microsecondsSinceEpoch}';
 
   factory AuthHiveModel.fromEntity(AuthEntity entity) {
     return AuthHiveModel(

@@ -7,9 +7,5 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await HiveService().init();
 
-  runApp(
-    const ProviderScope(
-      child: MyApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: MyApp()));
 }

@@ -1,6 +1,4 @@
-import 'package:equatable/equatable.dart';
-
-class AuthEntity extends Equatable {
+class AuthEntity {
   final String? userId;
   final String firstName;
   final String lastName;
@@ -18,14 +16,4 @@ class AuthEntity extends Equatable {
   });
 
   String get displayName => '$firstName $lastName'.trim();
-
-  @override
-  List<Object?> get props => [
-        userId,
-        firstName,
-        lastName,
-        email,
-        phone,
-        password,
-      ];
 }
