@@ -54,11 +54,13 @@ class ProMembershipPage extends StatelessWidget {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('e-Sewa payment will be connected next.'),
-                ),
-              );
+              ScaffoldMessenger.of(context)
+                ..clearSnackBars()
+                ..showSnackBar(
+                  const SnackBar(
+                    content: Text('e-Sewa payment will be connected next.'),
+                  ),
+                );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: _brandColor,

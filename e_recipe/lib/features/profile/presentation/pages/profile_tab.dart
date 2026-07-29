@@ -42,11 +42,14 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
           context,
         ).showSnackBar(SnackBar(content: Text(failure.message)));
       },
-      (_) => Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-        (_) => false,
-      ),
+      (_) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (_) => false,
+        );
+      },
     );
   }
 
