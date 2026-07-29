@@ -161,14 +161,22 @@ class _DashboardViewState extends State<DashboardView> {
                     "Chef's Specials",
                     style: TextStyle(
                       fontSize: 18,
-                      fontFamily: 'OpenSans BOLD',
+                      fontFamily: 'OpenSans Bold',
+                    ),
+                  ),
+                  Text(
+                    'VIEW ALL',
+                    style: TextStyle(
+                      color: brandColor,
+                      fontSize: 12,
+                      fontFamily: 'OpenSans SemiBold',
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
 
-              // Chef's Specials 
+              // Chef's Specials (All with fish.png)
               SizedBox(
                 height: 200,
                 child: SingleChildScrollView(
@@ -176,21 +184,22 @@ class _DashboardViewState extends State<DashboardView> {
                   child: Row(
                     children: [
                       _buildChefCard(
-                        title: 'MACHA KHANE HOOO',
+                        title: 'FISH CURRY',
+                        imagePath: 'assets/images/fish.png',
                         brandColor: brandColor,
                       ),
                       const SizedBox(width: 12),
                       _buildChefCard(
-                        title: 'AYE PO BANAUNE',
+                        title: 'FISH MASALA',
+                        imagePath: 'assets/images/fish.png',
                         brandColor: brandColor,
                       ),
-                       const SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       _buildChefCard(
-                        title: 'AYE PO BANAUNE',
+                        title: 'FISH TARKARI',
+                        imagePath: 'assets/images/fish.png',
                         brandColor: brandColor,
                       ),
-                    
-                      
                     ],
                   ),
                 ),
@@ -216,7 +225,7 @@ class _DashboardViewState extends State<DashboardView> {
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,
-                              fontFamily: 'OpenSans Italic',
+                              fontFamily: 'OpenSans Bold',
                             ),
                           ),
                           SizedBox(height: 4),
@@ -242,7 +251,7 @@ class _DashboardViewState extends State<DashboardView> {
                       ),
                       child: const Text(
                         'GET PREMIUM',
-                        style: TextStyle(fontFamily: 'OpenSans italic'),
+                        style: TextStyle(fontFamily: 'OpenSans SemiBold'),
                       ),
                     ),
                   ],
@@ -250,9 +259,9 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               const SizedBox(height: 32),
 
-              // Recipes
+              // Recipes Title
               const Text(
-                'EASY TOO COOK NOW',
+                'EASY TO COOK NOW',
                 style: TextStyle(
                   fontSize: 18,
                   fontFamily: 'OpenSans Bold',
@@ -260,25 +269,24 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               const SizedBox(height: 16),
 
-              // Row 1
+              // Row 1 (Trending Cards)
               Row(
                 children: [
                   Expanded(
                     child: _buildTrendingCard(
                       title: 'TARKARI',
-                      emoji: '🍲',
-                      brandColor: Colors.white,
+                      imagePath: 'assets/images/curry.png', // Tarkari = Curry
+                      brandColor: brandColor,
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildTrendingCard(
                       title: 'MOMO',
-                      emoji: '🥟',
-                      brandColor: Colors.white,
+                      imagePath: 'assets/images/momo.png', // Momo
+                      brandColor: brandColor,
                     ),
                   ),
-                  
                 ],
               ),
               const SizedBox(height: 16),
@@ -289,8 +297,8 @@ class _DashboardViewState extends State<DashboardView> {
                   Expanded(
                     child: _buildTrendingCard(
                       title: 'BHAT',
-                      emoji: '🍚',
-                      brandColor: Colors.white,
+                      imagePath: 'assets/images/rice.png', // Bhat = Rice
+                      brandColor: brandColor,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -312,7 +320,7 @@ class _DashboardViewState extends State<DashboardView> {
         unselectedItemColor: Colors.grey,
         backgroundColor: Colors.white,
         elevation: 0,
-        selectedLabelStyle: const TextStyle(fontFamily: 'OpenSans Italic'),
+        selectedLabelStyle: const TextStyle(fontFamily: 'OpenSans SemiBold'),
         unselectedLabelStyle: const TextStyle(fontFamily: 'OpenSans Regular'),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
@@ -324,13 +332,14 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
-  // Chef card 
+  // Chef card with Image (using Image.asset)
   Widget _buildChefCard({
     required String title,
+    required String imagePath,
     required Color brandColor,
   }) {
     return Container(
-      width: 160, 
+      width: 160,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -345,14 +354,26 @@ class _DashboardViewState extends State<DashboardView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 110,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Color(0xFFE8D9CC),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          // Image Container with ClipRRect for rounded corners
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            child: Image.asset(
+              imagePath,
+              height: 110,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                // Fallback if image fails to load
+                return Container(
+                  height: 110,
+                  width: double.infinity,
+                  color: const Color(0xFFE8D9CC),
+                  child: const Center(
+                    child: Icon(Icons.restaurant, size: 40, color: Colors.white70),
+                  ),
+                );
+              },
             ),
-            child: const Center(child: Icon(Icons.restaurant, size: 40, color: Colors.white)),
           ),
           Padding(
             padding: const EdgeInsets.all(10),
@@ -371,10 +392,10 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
-  // Trending card 
+  // Trending card with Image (using Image.asset)
   Widget _buildTrendingCard({
     required String title,
-    required String emoji,
+    required String imagePath,
     required Color brandColor,
   }) {
     return Container(
@@ -392,14 +413,26 @@ class _DashboardViewState extends State<DashboardView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 100,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Color(0xFFE0D5C8),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          // Image Container with ClipRRect for rounded corners
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: Image.asset(
+              imagePath,
+              height: 100,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                // Fallback if image fails to load
+                return Container(
+                  height: 100,
+                  width: double.infinity,
+                  color: const Color(0xFFE0D5C8),
+                  child: const Center(
+                    child: Icon(Icons.food_bank, size: 40, color: Colors.white70),
+                  ),
+                );
+              },
             ),
-            child: Center(child: Text(emoji, style: const TextStyle(fontSize: 40))),
           ),
           Padding(
             padding: const EdgeInsets.all(8),
