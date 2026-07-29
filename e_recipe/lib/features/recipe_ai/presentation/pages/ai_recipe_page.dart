@@ -1,9 +1,10 @@
 import 'package:e_recipe/app/routes/app_routes.dart';
 import 'package:e_recipe/features/recipe_ai/domain/entities/generated_recipe.dart';
+import 'package:e_recipe/features/recipe_ai/presentation/state/ai_chat_state.dart';
+import 'package:e_recipe/features/recipe_ai/presentation/view_model/ai_chat_viewmodel.dart';
 import 'package:e_recipe/features/recipe/presentation/widgets/recipe_access_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:e_recipe/app/providers/dependency_providers.dart';
 
 class AiRecipePage extends ConsumerStatefulWidget {
   const AiRecipePage({super.key});
@@ -16,14 +17,6 @@ class _AiRecipePageState extends ConsumerState<AiRecipePage> {
   static const _brand = Color(0xFFB84715);
   final _input = TextEditingController();
   final _scroll = ScrollController();
-  final List<RecipeChatMessage> _messages = [
-    const RecipeChatMessage(
-      text:
-          'Hi! I’m E-Recipe AI. Ask me about cooking, ingredients, substitutions, food storage, cuisines, or what you should cook today.',
-      isUser: false,
-    ),
-  ];
-  bool _loading = false;
 
   @override
   void dispose() {
@@ -34,46 +27,9 @@ class _AiRecipePageState extends ConsumerState<AiRecipePage> {
 
   Future<void> _send() async {
     final text = _input.text.trim();
-    if (text.isEmpty || _loading) return;
-    final history = List<RecipeChatMessage>.from(_messages);
-    setState(() {
-      _messages.add(RecipeChatMessage(text: text, isUser: true));
-      _input.clear();
-      _loading = true;
-    });
-    _scrollToBottom();
-
-    try {
-      final response = await ref.read(generateRecipeUseCaseProvider)(
-        text,
-        history: history,
-      );
-      if (!mounted) return;
-      setState(() {
-        _messages.add(
-          RecipeChatMessage(
-            text: response.message,
-            isUser: false,
-            recommendations: response.recommendations,
-          ),
-        );
-      });
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _messages.add(
-          RecipeChatMessage(
-            text: 'I couldn’t answer that right now. ${error.toString()}',
-            isUser: false,
-          ),
-        );
-      });
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-        _scrollToBottom();
-      }
-    }
+    if (text.isEmpty) return;
+    _input.clear();
+    await ref.read(aiChatViewModelProvider.notifier).send(text);
   }
 
   void _scrollToBottom() {
@@ -90,6 +46,13 @@ class _AiRecipePageState extends ConsumerState<AiRecipePage> {
 
   @override
   Widget build(BuildContext context) {
+    final chatState = ref.watch(aiChatViewModelProvider);
+    ref.listen<AiChatState>(aiChatViewModelProvider, (previous, next) {
+      if (previous == null || next.messages.length != previous.messages.length) {
+        _scrollToBottom();
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Row(
@@ -110,12 +73,12 @@ class _AiRecipePageState extends ConsumerState<AiRecipePage> {
             child: ListView.builder(
               controller: _scroll,
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              itemCount: _messages.length + (_loading ? 1 : 0),
+              itemCount: chatState.messages.length + (chatState.loading ? 1 : 0),
               itemBuilder: (context, index) {
-                if (index == _messages.length) {
+                if (index == chatState.messages.length) {
                   return const _TypingBubble();
                 }
-                return _MessageBubble(message: _messages[index]);
+                return _MessageBubble(message: chatState.messages[index]);
               },
             ),
           ),
@@ -150,7 +113,7 @@ class _AiRecipePageState extends ConsumerState<AiRecipePage> {
                   ),
                   const SizedBox(width: 8),
                   IconButton.filled(
-                    onPressed: _loading ? null : _send,
+                    onPressed: chatState.loading ? null : _send,
                     style: IconButton.styleFrom(backgroundColor: _brand),
                     icon: const Icon(Icons.send),
                   ),
