@@ -5,7 +5,4 @@ export const RECIPE_CATEGORIES = [
   'Healthy',
   'Dessert',
   'Snack',
-  'Italian',
-  'Asian',
-  'Vegetarian',
 ];
