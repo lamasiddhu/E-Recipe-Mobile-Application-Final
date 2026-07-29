@@ -1,6 +1,6 @@
-import 'package:e_recipe/app/providers/dependency_providers.dart';
-import 'package:e_recipe/features/auth/domain/usecases/register_usecase.dart';
 import 'package:e_recipe/features/auth/presentation/pages/login_screen.dart';
+import 'package:e_recipe/features/auth/presentation/state/auth_state.dart';
+import 'package:e_recipe/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

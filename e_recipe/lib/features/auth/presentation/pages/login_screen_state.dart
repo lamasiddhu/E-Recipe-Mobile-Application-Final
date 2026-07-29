@@ -6,23 +6,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordCtrl = TextEditingController();
   bool _obscure = true;
   bool _isUserLogin = true;
-  bool _isLoading = false;
-  bool _googleInitialized = false;
-  bool _showBiometricLogin = false;
 
   @override
   void initState() {
     super.initState();
-    _checkBiometricLogin();
-  }
-
-  Future<void> _checkBiometricLogin() async {
-    final biometrics = BiometricService();
-    final show =
-        biometrics.isEnabled &&
-        biometrics.hasSavedSession &&
-        await biometrics.isAvailable();
-    if (mounted) setState(() => _showBiometricLogin = show);
+    ref.read(authViewModelProvider.notifier).checkBiometricAvailability();
   }
 
   @override
@@ -32,51 +20,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  void _login() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      setState(() => _isLoading = true);
+  Future<void> _login() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
-      try {
-        // Get the login usecase from provider
-        final loginUsecase = ref.read(loginUseCaseProvider);
+    await ref
+        .read(authViewModelProvider.notifier)
+        .login(email: _emailCtrl.text.trim(), password: _passwordCtrl.text);
 
-        // Call login usecase
-        final result = await loginUsecase(
-          LoginParams(
-            email: _emailCtrl.text.trim(),
-            password: _passwordCtrl.text,
-          ),
-        );
-
-        if (!mounted) return;
-
-        result.fold(
-          (failure) {
-            // Login failed
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(failure.message)));
-            setState(() => _isLoading = false);
-          },
-          (user) {
-            // Login successful, navigate to dashboard
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => _isUserLogin
-                    ? const DashboardView()
-                    : const AdminDashboardPage(),
-              ),
-            );
-          },
-        );
-      } catch (e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
-        setState(() => _isLoading = false);
-      }
+    if (!mounted) return;
+    final authState = ref.read(authViewModelProvider);
+    if (authState.status == AuthStatus.authenticated) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              _isUserLogin ? const DashboardView() : const AdminDashboardPage(),
+        ),
+      );
+    } else if (authState.status == AuthStatus.error &&
+        authState.message != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(authState.message!)));
     }
   }
 
@@ -88,96 +53,47 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _googleLogin() async {
-    setState(() => _isLoading = true);
-    try {
-      if (!_googleInitialized) {
-        final clientId = await ref.read(getGoogleClientIdUseCaseProvider)();
-        await GoogleSignIn.instance.initialize(serverClientId: clientId);
-        _googleInitialized = true;
-      }
-      final account = await GoogleSignIn.instance.authenticate();
-      final idToken = account.authentication.idToken;
-      if (idToken == null || idToken.isEmpty) {
-        throw StateError('Google did not return an identity token.');
-      }
-      final result = await ref.read(googleLoginUseCaseProvider)(idToken);
-      if (!mounted) return;
-      result.fold(
-        (failure) {
-          setState(() => _isLoading = false);
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(failure.message)));
-        },
-        (_) => Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const DashboardView()),
-          (_) => false,
-        ),
+    await ref.read(authViewModelProvider.notifier).googleLogin();
+    if (!mounted) return;
+    final authState = ref.read(authViewModelProvider);
+    if (authState.status == AuthStatus.authenticated) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const DashboardView()),
+        (_) => false,
       );
-    } on GoogleSignInException catch (error) {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-      if (error.code != GoogleSignInExceptionCode.canceled) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Google sign-in failed: ${error.description}'),
-          ),
-        );
-      }
-    } catch (error) {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
+    } else if (authState.status == AuthStatus.error &&
+        authState.message != null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(error.toString())));
+      ).showSnackBar(SnackBar(content: Text(authState.message!)));
     }
   }
 
   Future<void> _biometricLogin() async {
-    setState(() => _isLoading = true);
-    final authenticated = await BiometricService().authenticate(
-      'Use your fingerprint to log in to E-Recipe',
-    );
-    if (!authenticated || !mounted) {
-      if (mounted) setState(() => _isLoading = false);
-      return;
-    }
-    final restored = await BiometricService().restoreSession();
-    if (!restored || !mounted) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'No saved biometric login is available. Log in with your password once.',
-            ),
-          ),
-        );
-      }
-      return;
-    }
-    final result = await ref.read(getCurrentUseCaseProvider)();
+    await ref.read(authViewModelProvider.notifier).biometricLogin();
     if (!mounted) return;
-    result.fold(
-      (failure) {
-        BiometricService().clearSavedSession();
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(failure.message)));
-      },
-      (_) => Navigator.pushAndRemoveUntil(
+    final authState = ref.read(authViewModelProvider);
+    if (authState.status == AuthStatus.authenticated) {
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const DashboardView()),
         (_) => false,
-      ),
-    );
+      );
+    } else if (authState.status == AuthStatus.error &&
+        authState.message != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(authState.message!)));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     const Color brandColor = Color(0xFFB84715);
+    final authState = ref.watch(authViewModelProvider);
+    final isLoading = authState.status == AuthStatus.loading;
+    final showBiometricLogin = authState.biometricAvailable;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F2E9),
@@ -236,7 +152,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           children: [
                             Expanded(
                               child: GestureDetector(
-                                onTap: _isLoading
+                                onTap: isLoading
                                     ? null
                                     : () => setState(() => _isUserLogin = true),
                                 child: Container(
@@ -264,7 +180,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                             Expanded(
                               child: GestureDetector(
-                                onTap: _isLoading
+                                onTap: isLoading
                                     ? null
                                     : () =>
                                           setState(() => _isUserLogin = false),
@@ -297,7 +213,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       const SizedBox(height: 24),
                       TextFormField(
                         controller: _emailCtrl,
-                        enabled: !_isLoading,
+                        enabled: !isLoading,
                         decoration: InputDecoration(
                           labelText: 'Email or ID',
                           prefixIcon: const Icon(
@@ -315,7 +231,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _passwordCtrl,
-                        enabled: !_isLoading,
+                        enabled: !isLoading,
                         obscureText: _obscure,
                         decoration: InputDecoration(
                           labelText: 'Password',
@@ -345,7 +261,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: _isLoading
+                          onPressed: isLoading
                               ? null
                               : () => Navigator.push(
                                   context,
@@ -364,7 +280,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         width: double.infinity,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: _isLoading ? null : _login,
+                          onPressed: isLoading ? null : _login,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: brandColor,
                             foregroundColor: Colors.white,
@@ -372,7 +288,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: _isLoading
+                          child: isLoading
                               ? const SizedBox(
                                   height: 20,
                                   width: 20,
@@ -407,7 +323,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(
-                          onPressed: _isLoading ? null : _googleLogin,
+                          onPressed: isLoading ? null : _googleLogin,
                           icon: const Text(
                             'G',
                             style: TextStyle(
@@ -428,12 +344,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ],
                   ),
                 ),
-                if (_showBiometricLogin) ...[
+                if (showBiometricLogin) ...[
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: _isLoading ? null : _biometricLogin,
+                      onPressed: isLoading ? null : _biometricLogin,
                       icon: const Icon(Icons.fingerprint),
                       label: const Text('Login with fingerprint'),
                     ),
@@ -445,7 +361,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   children: [
                     const Text("Don't have an account?"),
                     TextButton(
-                      onPressed: _isLoading ? null : _goToSignup,
+                      onPressed: isLoading ? null : _goToSignup,
                       child: const Text(
                         'Sign up for free',
                         style: TextStyle(color: Color(0xFFB84715)),

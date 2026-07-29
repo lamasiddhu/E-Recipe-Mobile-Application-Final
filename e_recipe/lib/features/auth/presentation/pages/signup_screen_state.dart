@@ -12,7 +12,6 @@ class _SignupViewState extends ConsumerState<SignupView> {
   bool _obscure = true;
   bool _obscureConfirm = true;
   bool _agreeToTerms = false;
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -24,55 +23,38 @@ class _SignupViewState extends ConsumerState<SignupView> {
     super.dispose();
   }
 
-  void _signup() async {
+  Future<void> _signup() async {
     if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please agree to the Terms & Conditions')),
       );
       return;
     }
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    if (_formKey.currentState?.validate() ?? false) {
-      setState(() => _isLoading = true);
-
-      try {
-        final nameParts = _fullNameCtrl.text.trim().split(RegExp(r'\s+'));
-        final registerUsecase = ref.read(registerUseCaseProvider);
-        final result = await registerUsecase(
-          RegisterParams(
-            firstName: nameParts.first,
-            lastName: nameParts.skip(1).join(' '),
-            email: _emailCtrl.text.trim(),
-            phone: _phoneCtrl.text.trim(),
-            password: _passwordCtrl.text,
-          ),
+    final nameParts = _fullNameCtrl.text.trim().split(RegExp(r'\s+'));
+    await ref
+        .read(authViewModelProvider.notifier)
+        .register(
+          firstName: nameParts.first,
+          lastName: nameParts.skip(1).join(' '),
+          email: _emailCtrl.text.trim(),
+          phone: _phoneCtrl.text.trim(),
+          password: _passwordCtrl.text,
         );
 
-        if (!mounted) return;
-
-        result.fold(
-          (failure) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(failure.message)));
-          },
-          (_) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Account created successfully!')),
-            );
-            Navigator.pop(context);
-          },
-        );
-      } catch (e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
-      }
+    if (!mounted) return;
+    final authState = ref.read(authViewModelProvider);
+    if (authState.status == AuthStatus.registered) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Account created successfully!')),
+      );
+      Navigator.pop(context);
+    } else if (authState.status == AuthStatus.error &&
+        authState.message != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(authState.message!)));
     }
   }
 
@@ -86,6 +68,8 @@ class _SignupViewState extends ConsumerState<SignupView> {
   @override
   Widget build(BuildContext context) {
     const Color brandColor = Color(0xFFB84715);
+    final isLoading =
+        ref.watch(authViewModelProvider).status == AuthStatus.loading;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F2E9),
@@ -365,7 +349,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
                 SizedBox(
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _signup,
+                    onPressed: isLoading ? null : _signup,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: brandColor,
                       foregroundColor: Colors.white,
@@ -373,7 +357,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: _isLoading
+                    child: isLoading
                         ? const SizedBox(
                             height: 20,
                             width: 20,
