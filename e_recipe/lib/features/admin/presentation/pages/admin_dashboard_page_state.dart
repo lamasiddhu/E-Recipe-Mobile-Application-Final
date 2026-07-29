@@ -2,82 +2,39 @@ part of 'admin_dashboard_page.dart';
 
 class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
   int _tab = 0;
-  bool _loading = true;
-  String? _error;
-  Map<String, dynamic> _dashboard = {};
-  Map<String, dynamic> _settings = {};
-  List<Map<String, dynamic>> _users = [];
-  List<Map<String, dynamic>> _orders = [];
-  List<Map<String, dynamic>> _recipes = [];
-  Timer? _liveTimer;
-  DateTime? _lastUpdated;
   String _broadcastType = 'announcement';
+  final _announcementCtrl = TextEditingController();
 
-  AdminUseCases get _api => ref.read(adminUseCasesProvider);
+  // Safe to call from build() and from event handlers alike: ref.read never
+  // requires the build-method context that ref.watch does.
+  AdminDashboardState get _adminState =>
+      ref.read(adminDashboardViewModelProvider);
+  AdminDashboardViewModel get _api =>
+      ref.read(adminDashboardViewModelProvider.notifier);
+
+  bool get _loading => _adminState.loading;
+  String? get _error => _adminState.error;
+  Map<String, dynamic> get _dashboard => _adminState.dashboard;
+  Map<String, dynamic> get _settings => _adminState.settings;
+  List<Map<String, dynamic>> get _users => _adminState.users;
+  List<Map<String, dynamic>> get _orders => _adminState.orders;
+  List<Map<String, dynamic>> get _recipes => _adminState.recipes;
+  DateTime? get _lastUpdated => _adminState.lastUpdated;
+
+  Future<void> _loadAll() => _api.loadAll();
 
   @override
   void initState() {
     super.initState();
-    _loadAll();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(profileViewModelProvider.notifier).load();
     });
-    _liveTimer = Timer.periodic(
-      const Duration(seconds: 10),
-      (_) => _refreshLiveDashboard(),
-    );
   }
 
   @override
   void dispose() {
-    _liveTimer?.cancel();
+    _announcementCtrl.dispose();
     super.dispose();
-  }
-
-  Future<void> _refreshLiveDashboard() async {
-    if (!mounted) return;
-    try {
-      final dashboard = await _api.dashboard();
-      if (!mounted) return;
-      setState(() {
-        _dashboard = dashboard;
-        _lastUpdated = DateTime.now();
-      });
-    } catch (_) {
-      // Keep the last valid values during a temporary network interruption.
-    }
-  }
-
-  Future<void> _loadAll() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final results = await Future.wait([
-        _api.dashboard(),
-        _api.users(),
-        _api.orders(),
-        _api.recipes(),
-        _api.settings(),
-      ]);
-      if (!mounted) return;
-      setState(() {
-        _dashboard = results[0] as Map<String, dynamic>;
-        _users = results[1] as List<Map<String, dynamic>>;
-        _orders = results[2] as List<Map<String, dynamic>>;
-        _recipes = results[3] as List<Map<String, dynamic>>;
-        _settings = results[4] as Map<String, dynamic>;
-        _lastUpdated = DateTime.now();
-        _loading = false;
-      });
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _error = _message(error);
-        _loading = false;
-      });
-    }
   }
 
   String _message(Object error) {
@@ -92,6 +49,7 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(adminDashboardViewModelProvider);
     final profile = ref.watch(profileViewModelProvider).profile;
     final hasAvatar =
         profile != null &&
@@ -516,9 +474,6 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
   }
 
   Widget _settingsTab() {
-    final announcement = TextEditingController(
-      text: _settings['announcement']?.toString() ?? '',
-    );
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
@@ -544,7 +499,7 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
                 ),
               ),
               TextField(
-                controller: announcement,
+                controller: _announcementCtrl,
                 maxLines: 4,
                 decoration: const InputDecoration(
                   hintText: 'Type the message to broadcast to all users...',
@@ -580,12 +535,14 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () async {
-                    await _run(
+                    final sent = await _run(
                       () => _api.broadcast(
-                        announcement.text,
+                        _announcementCtrl.text,
                         type: _broadcastType,
                       ),
+                      successMessage: 'Message sent successfully.',
                     );
+                    if (sent) _announcementCtrl.clear();
                     await _loadAll();
                   },
                   icon: const Icon(Icons.send),
@@ -609,7 +566,6 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
                 value: _settings['maintenanceMode'] == true,
                 onChanged: (value) async {
                   await _run(() => _api.maintenance(value));
-                  setState(() => _settings['maintenanceMode'] = value);
                 },
               ),
               const Divider(),
@@ -727,20 +683,25 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
     return found.isEmpty ? 'Recipe $id' : found.first['title'].toString();
   }
 
-  Future<void> _run(Future<void> Function() action) async {
+  Future<bool> _run(
+    Future<void> Function() action, {
+    String successMessage = 'Saved successfully.',
+  }) async {
     try {
       await action();
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Saved successfully.')));
+        ).showSnackBar(SnackBar(content: Text(successMessage)));
       }
+      return true;
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(_message(error))));
       }
+      return false;
     }
   }
 
@@ -886,17 +847,19 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
                     DropdownButtonFormField<String>(
                       initialValue: category,
                       items:
-                          const [
+                          {
                                 'Breakfast',
                                 'Lunch',
                                 'Dinner',
-                                'Dessert',
                                 'Healthy',
+                                'Dessert',
                                 'Snack',
-                                'Italian',
-                                'Asian',
-                                'Vegetarian',
-                              ]
+                                // Always include the recipe's current value,
+                                // even if it predates this fixed category
+                                // list, so the dropdown never crashes on
+                                // data that doesn't match the known set.
+                                category,
+                              }
                               .map(
                                 (value) => DropdownMenuItem(
                                   value: value,
@@ -910,7 +873,7 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
                     ),
                     DropdownButtonFormField<String>(
                       initialValue: difficulty,
-                      items: const ['Easy', 'Medium', 'Hard']
+                      items: {'Easy', 'Medium', 'Hard', difficulty}
                           .map(
                             (value) => DropdownMenuItem(
                               value: value,
@@ -926,7 +889,7 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
                     ),
                     DropdownButtonFormField<String>(
                       initialValue: badge,
-                      items: const ['Free', 'Normal', 'Pro']
+                      items: {'Free', 'Normal', 'Pro', badge}
                           .map(
                             (value) => DropdownMenuItem(
                               value: value,
