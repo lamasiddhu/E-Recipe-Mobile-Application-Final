@@ -1,6 +1,7 @@
 import 'package:e_recipe/app.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
-void main (){
-  runApp(MyApp());
+
+void main() {
+  runApp(const MyApp());
 }
