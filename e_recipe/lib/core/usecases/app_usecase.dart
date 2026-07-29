@@ -1,10 +1,9 @@
-import 'package:dartz/dartz.dart';
-import 'package:e_recipe/core/error/failures.dart';
+import 'package:e_recipe/core/error/app_result.dart';
 
 abstract interface class UsecaseWithParams<SuccessType, Params> {
-  Future<Either<Failure, SuccessType>> call(Params params);
+  Future<AppResult<SuccessType>> call(Params params);
 }
 
 abstract interface class UsecaseWithoutParams<SuccessType> {
-  Future<Either<Failure, SuccessType>> call();
+  Future<AppResult<SuccessType>> call();
 }

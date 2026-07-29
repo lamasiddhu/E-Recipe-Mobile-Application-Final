@@ -17,18 +17,10 @@ class SnackbarUtils {
   }
 
   static void showErrorSnackbar(BuildContext context, String message) {
-    showSnackbar(
-      context,
-      message,
-      backgroundColor: Colors.red,
-    );
+    showSnackbar(context, message, backgroundColor: Colors.red);
   }
 
   static void showSuccessSnackbar(BuildContext context, String message) {
-    showSnackbar(
-      context,
-      message,
-      backgroundColor: Colors.green,
-    );
+    showSnackbar(context, message, backgroundColor: Colors.green);
   }
 }
