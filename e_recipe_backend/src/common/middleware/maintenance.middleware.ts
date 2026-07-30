@@ -19,11 +19,23 @@ export class MaintenanceMiddleware implements NestMiddleware {
     if (!settings?.maintenanceMode) return next();
 
     const path = request.originalUrl;
-    if (
-      path.includes('/users/login') ||
-      path.includes('/admin/')
-    ) {
+    if (path.includes('/admin/')) {
       return next();
+    }
+
+    if (path.includes('/users/login')) {
+      const email = request.body?.email;
+      if (typeof email === 'string') {
+        const user = await this.connection
+          .collection('users')
+          .findOne({ email: email.toLowerCase() });
+        if (user?.role === 'admin') return next();
+      }
+      return response.status(503).json({
+        success: false,
+        message:
+          'E-Recipe is temporarily under maintenance. Please try again later.',
+      });
     }
 
     const token = request.headers.authorization?.replace(/^Bearer\s+/i, '');
