@@ -372,44 +372,6 @@ class _SignupViewState extends ConsumerState<SignupView> {
                   ),
                 ),
 
-                const SizedBox(height: 24),
-
-                Row(
-                  children: [
-                    Expanded(child: Divider(color: Colors.grey[300])),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text(
-                        'OR CONTINUE WITH',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                      ),
-                    ),
-                    Expanded(child: Divider(color: Colors.grey[300])),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.g_mobiledata),
-                        label: const Text('Google'),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.facebook, color: Colors.blue),
-                        label: const Text('Facebook'),
-                      ),
-                    ),
-                  ],
-                ),
-
                 const SizedBox(height: 32),
 
                 Row(

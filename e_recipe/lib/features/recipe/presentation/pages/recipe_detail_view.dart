@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_recipe/features/favorites/presentation/view_model/saved_recipes_viewmodel.dart';
 import 'package:e_recipe/features/purchase/domain/entities/purchase_order_entity.dart';
 import 'package:e_recipe/features/purchase/presentation/view_model/purchase_viewmodel.dart';
@@ -103,12 +104,17 @@ class _RecipeDetailViewState extends ConsumerState<RecipeDetailView> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(20),
-                child: Image.network(
-                  recipe.image,
+                child: CachedNetworkImage(
+                  imageUrl: recipe.image,
                   height: 200,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
+                  placeholder: (context, url) => Container(
+                    height: 200,
+                    width: double.infinity,
+                    color: const Color(0xFFE8D9CC),
+                  ),
+                  errorWidget: (context, url, error) => Container(
                     height: 200,
                     width: double.infinity,
                     color: const Color(0xFFE8D9CC),

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_recipe/app/routes/app_routes.dart';
 import 'package:e_recipe/core/constants/recipe_categories.dart';
 import 'package:e_recipe/features/recipe/presentation/state/recipe_list_state.dart';
@@ -176,12 +177,17 @@ class _RecipeListViewState extends ConsumerState<RecipeListView> {
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(16),
                       ),
-                      child: Image.network(
-                        recipe.image,
+                      child: CachedNetworkImage(
+                        imageUrl: recipe.image,
                         height: 110,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
+                        placeholder: (context, url) => Container(
+                          height: 110,
+                          width: double.infinity,
+                          color: const Color(0xFFE8D9CC),
+                        ),
+                        errorWidget: (context, url, error) => Container(
                           height: 110,
                           width: double.infinity,
                           color: const Color(0xFFE8D9CC),

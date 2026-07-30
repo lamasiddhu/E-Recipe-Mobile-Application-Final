@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_recipe/app/routes/app_routes.dart';
 import 'package:e_recipe/features/purchase/presentation/view_model/purchase_viewmodel.dart';
 import 'package:flutter/material.dart';
@@ -92,12 +93,16 @@ class PurchasedTab extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Image.network(
-                                recipe.image,
+                              CachedNetworkImage(
+                                imageUrl: recipe.image,
                                 height: 120,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) => Container(
+                                placeholder: (_, _) => Container(
+                                  height: 120,
+                                  color: const Color(0xFFE8D9CC),
+                                ),
+                                errorWidget: (_, _, _) => Container(
                                   height: 120,
                                   color: const Color(0xFFE8D9CC),
                                   child: const Icon(

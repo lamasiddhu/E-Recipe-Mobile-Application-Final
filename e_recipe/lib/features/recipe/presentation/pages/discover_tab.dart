@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_recipe/app/routes/app_routes.dart';
 import 'package:e_recipe/core/constants/recipe_categories.dart';
 import 'package:e_recipe/features/favorites/presentation/view_model/saved_recipes_viewmodel.dart';
@@ -210,12 +211,16 @@ class _DiscoverTabState extends ConsumerState<DiscoverTab> {
                 children: [
                   Stack(
                     children: [
-                      Image.network(
-                        recipe.image,
+                      CachedNetworkImage(
+                        imageUrl: recipe.image,
                         height: 120,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Container(
+                        placeholder: (_, _) => Container(
+                          height: 120,
+                          color: const Color(0xFFE8D9CC),
+                        ),
+                        errorWidget: (_, _, _) => Container(
                           height: 120,
                           color: const Color(0xFFE8D9CC),
                           child: const Center(

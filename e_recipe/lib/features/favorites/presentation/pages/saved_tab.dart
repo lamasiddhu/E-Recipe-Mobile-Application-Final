@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_recipe/app/routes/app_routes.dart';
 import 'package:e_recipe/features/favorites/presentation/view_model/saved_recipes_viewmodel.dart';
 import 'package:flutter/material.dart';
@@ -96,12 +97,17 @@ class SavedTab extends ConsumerWidget {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        recipe.image,
+                      child: CachedNetworkImage(
+                        imageUrl: recipe.image,
                         width: 88,
                         height: 88,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Container(
+                        placeholder: (_, _) => Container(
+                          width: 88,
+                          height: 88,
+                          color: const Color(0xFFE8D9CC),
+                        ),
+                        errorWidget: (_, _, _) => Container(
                           width: 88,
                           height: 88,
                           color: const Color(0xFFE8D9CC),

@@ -414,12 +414,17 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(20),
                   ),
-                  child: Image.network(
-                    recipe.image,
+                  child: CachedNetworkImage(
+                    imageUrl: recipe.image,
                     height: 110,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
+                    placeholder: (context, url) => Container(
+                      height: 110,
+                      width: double.infinity,
+                      color: const Color(0xFFE8D9CC),
+                    ),
+                    errorWidget: (context, url, error) => Container(
                       height: 110,
                       width: double.infinity,
                       color: const Color(0xFFE8D9CC),
@@ -490,12 +495,17 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(16),
                   ),
-                  child: Image.network(
-                    recipe.image,
+                  child: CachedNetworkImage(
+                    imageUrl: recipe.image,
                     height: 100,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
+                    placeholder: (context, url) => Container(
+                      height: 100,
+                      width: double.infinity,
+                      color: const Color(0xFFE0D5C8),
+                    ),
+                    errorWidget: (context, url, error) => Container(
                       height: 100,
                       width: double.infinity,
                       color: const Color(0xFFE0D5C8),

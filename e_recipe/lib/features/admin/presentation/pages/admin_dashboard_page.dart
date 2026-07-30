@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:e_recipe/core/api/api_endpoints.dart';
 import 'package:e_recipe/features/admin/presentation/pages/admin_profile_page.dart';

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_recipe/app/routes/app_routes.dart';
 import 'package:e_recipe/core/api/api_endpoints.dart';
 import 'package:e_recipe/core/constants/recipe_categories.dart';

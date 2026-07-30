@@ -349,12 +349,19 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
           contentPadding: EdgeInsets.zero,
           leading: ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: Image.network(
-              ApiEndpoints.mediaUrl(recipe['image']?.toString() ?? ''),
+            child: CachedNetworkImage(
+              imageUrl: ApiEndpoints.mediaUrl(
+                recipe['image']?.toString() ?? '',
+              ),
               width: 52,
               height: 52,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Container(
+              placeholder: (_, _) => Container(
+                width: 52,
+                height: 52,
+                color: const Color(0xFFFFE8DE),
+              ),
+              errorWidget: (_, _, _) => Container(
                 width: 52,
                 height: 52,
                 color: const Color(0xFFFFE8DE),
