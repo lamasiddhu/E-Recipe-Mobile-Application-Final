@@ -41,6 +41,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   mocktail: ^1.0.5
+  flutter_launcher_icons: ^0.14.4
 
   # Code Generation
   # NOTE: hive_generator removed — it pins analyzer <7.0.0 which conflicts with
@@ -72,3 +73,10 @@ flutter:
   # Assets
   assets:
     - assets/images/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/e-recipe-logo.png"
+  adaptive_icon_background: "#B84715"
+  adaptive_icon_foreground: "assets/images/e-recipe-logo.png"
