@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import '../helpers/fixtures.dart';
+import '../../../../helpers/fixtures.dart';
 
 class MockGenerateRecipeUseCase extends Mock implements GenerateRecipeUseCase {}
 

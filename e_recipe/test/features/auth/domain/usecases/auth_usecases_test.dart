@@ -9,7 +9,7 @@ import 'package:e_recipe/features/auth/domain/usecases/register_usecase.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import '../helpers/fixtures.dart';
+import '../../../../helpers/fixtures.dart';
 
 class MockAuthRepository extends Mock implements IAuthRepository {}
 

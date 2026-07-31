@@ -1,7 +1,4 @@
 import 'package:e_recipe/core/error/app_result.dart';
-import 'package:e_recipe/features/purchase/domain/entities/purchase_order_entity.dart';
-import 'package:e_recipe/features/purchase/domain/repositories/purchase_repository.dart';
-import 'package:e_recipe/features/purchase/domain/usecases/purchase_usecases.dart';
 import 'package:e_recipe/features/recipe/domain/entities/recipe_list_result.dart';
 import 'package:e_recipe/features/recipe/domain/repositories/recipe_repository.dart';
 import 'package:e_recipe/features/recipe/domain/usecases/get_recipe_by_id_usecase.dart';
@@ -9,21 +6,15 @@ import 'package:e_recipe/features/recipe/domain/usecases/get_recipes_usecase.dar
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import '../helpers/fixtures.dart';
+import '../../../../helpers/fixtures.dart';
 
 class MockRecipeRepository extends Mock implements IRecipeRepository {}
 
-class MockPurchaseRepository extends Mock implements IPurchaseRepository {}
-
 void main() {
   late MockRecipeRepository recipes;
-  late MockPurchaseRepository purchases;
 
   setUpAll(() => registerFallbackValue(testRecipe));
-  setUp(() {
-    recipes = MockRecipeRepository();
-    purchases = MockPurchaseRepository();
-  });
+  setUp(() => recipes = MockRecipeRepository());
 
   test('recipe list use case forwards all filters', () async {
     final page = RecipeListResult(
@@ -76,26 +67,5 @@ void main() {
 
     expect(result, isA<ResultSuccess>());
     verify(() => recipes.getRecipeById(testRecipe.id)).called(1);
-  });
-
-  test('purchase uses database recipe price and eSewa number', () async {
-    when(
-      () => purchases.purchase(
-        testRecipe,
-        price: testRecipe.price,
-        esewaNumber: '9800000000',
-      ),
-    ).thenAnswer((_) async => ResultSuccess(testOrder));
-
-    final result = await PurchaseRecipeUseCase(purchases)(
-      testRecipe,
-      esewaNumber: '9800000000',
-    );
-
-    expect(result, isA<ResultSuccess<PurchaseOrderEntity>>());
-    verify(
-      () =>
-          purchases.purchase(testRecipe, price: 250, esewaNumber: '9800000000'),
-    ).called(1);
   });
 }
